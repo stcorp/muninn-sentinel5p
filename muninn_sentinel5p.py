@@ -10,11 +10,11 @@ from muninn.geometry import Point, LinearRing, Polygon
 # Namespaces
 
 class Sentinel5PNamespace(Mapping):
-    file_class = Text
-    file_type = Text
-    orbit = Integer
-    collection = Integer
-    processor_version = Integer
+    file_class = Text(index=True)
+    file_type = Text(index=True)
+    orbit = Integer(index=True)
+    collection = Integer(index=True)
+    processor_version = Integer(index=True)
 
 
 def namespaces():
