@@ -1,6 +1,6 @@
 import os
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from muninn.struct import Struct
 from muninn.schema import Mapping, Text, Integer
@@ -12,9 +12,9 @@ from muninn.geometry import Point, LinearRing, Polygon
 class Sentinel5PNamespace(Mapping):
     file_class = Text(index=True)
     file_type = Text(index=True)
-    orbit = Integer(index=True)
-    collection = Integer(index=True)
-    processor_version = Integer(index=True)
+    orbit = Integer(index=True, optional=True)
+    collection = Integer(index=True, optional=True)
+    processor_version = Integer(index=True, optional=True)
 
 
 def namespaces():
@@ -62,6 +62,17 @@ L2_PRODUCT_TYPES = [
     'L2__SO2___',
 ]
 
+AUX_PRODUCT_TYPES = [
+    'AUX_NISE__',
+    'AUX_MET_TP',
+    'AUX_MET_QP',
+    'AUX_MET_2D',
+    'AUX_CTMFCT',
+    'AUX_CTMANA',
+    'AUX_CTMCH4',
+    'AUX_CTM_CO',
+]
+
 FILE_CLASSES = [
     'NRTI',  # near-real time processing
     'OFFL',  # offline processing
@@ -69,11 +80,11 @@ FILE_CLASSES = [
     'TEST',  # test
 ]
 
-PRODUCT_TYPES = []
+MUNINN_PRODUCT_TYPES = []
 
 for _type in L1_PRODUCT_TYPES:
     for _fileclass in FILE_CLASSES:
-        PRODUCT_TYPES.append('S5P_%s_%s' % (_type, _fileclass))
+        MUNINN_PRODUCT_TYPES.append('S5P_%s_%s' % (_type, _fileclass))
 
 
 for _type in L2_PRODUCT_TYPES:
@@ -81,7 +92,11 @@ for _type in L2_PRODUCT_TYPES:
         if _fileclass == 'NRTI' and _type == 'L2__CH4':
             # There are no NRTI products for L2 CH4
             continue
-        PRODUCT_TYPES.append("S5P_%s_%s" % (_type, _fileclass))
+        MUNINN_PRODUCT_TYPES.append("S5P_%s_%s" % (_type, _fileclass))
+
+
+for _type in AUX_PRODUCT_TYPES:
+    MUNINN_PRODUCT_TYPES.append("S5P_%s" % (_type))
 
 
 def get_footprint(product):
@@ -112,7 +127,7 @@ class Sentinel5PProduct(object):
         pattern = [
             r"S5P",
             r"(?P<file_class>%s)" % product_type[-4:],  # e.g. "S5P_L2__NO2____NRTI" -> "NRTI"
-            r"(?P<file_type>%s)" % product_type[4:-5],  # e.g. "S5P_L2__NO2____NRTI" -> "L2__NO2___"
+            r"(?P<file_type>%s)" % product_type[4:14],  # e.g. "S5P_L2__NO2____NRTI" -> "L2__NO2___"
             r"(?P<validity_start>[\dT]{15})",
             r"(?P<validity_stop>[\dT]{15})",
             r"(?P<orbit>.{5})",
@@ -168,10 +183,97 @@ class Sentinel5PProduct(object):
         return properties
 
 
+class Sentinel5PAuxiliaryProduct(Sentinel5PProduct):
+
+    def __init__(self, product_type):
+        super(Sentinel5PAuxiliaryProduct, self).__init__(product_type)
+        pattern = [
+            r"S5P",
+            r"(?P<file_class>.{4})",
+            r"(?P<file_type>%s)" % product_type[4:],
+            r"(?P<validity_start>[\dT]{15})",
+            r"(?P<validity_stop>[\dT]{15})",
+            r"(?P<creation_date>[\dT]{15})"
+        ]
+        self.filename_pattern = "_".join(pattern) + r"\.nc$"
+
+    def archive_path(self, properties):
+        name_attrs = self.parse_filename(properties.core.physical_name)
+        validity_start = properties.core.validity_start
+        return os.path.join(
+            "sentinel-5p",
+            name_attrs['file_type'],
+            validity_start.strftime("%Y"),
+            validity_start.strftime("%m")
+        )
+
+    def analyze(self, paths):
+        inpath = paths[0]
+        name_attrs = self.parse_filename(inpath)
+
+        properties = Struct()
+
+        core = properties.core = Struct()
+        core.product_name = os.path.splitext(os.path.basename(inpath))[0]
+        core.creation_date = datetime.strptime(name_attrs['creation_date'], "%Y%m%dT%H%M%S")
+        core.validity_start = datetime.strptime(name_attrs['validity_start'], "%Y%m%dT%H%M%S")
+        core.validity_stop = datetime.strptime(name_attrs['validity_stop'], "%Y%m%dT%H%M%S")
+
+        s5p = properties.s5p = Struct()
+        s5p.file_class = name_attrs['file_class']
+        s5p.file_type = name_attrs['file_type']
+
+        return properties
+
+
+class Sentinel5PAuxiliaryNISEProduct(Sentinel5PAuxiliaryProduct):
+
+    def __init__(self, product_type):
+        super(Sentinel5PAuxiliaryNISEProduct, self).__init__(product_type)
+        pattern = [
+            r"NISE",
+            r"SSMISF18",
+            r"(?P<validity_start>[\d]{8})",
+        ]
+        self.filename_pattern = "_".join(pattern) + r"\.HDFEOS$"
+
+    def archive_path(self, properties):
+        name_attrs = self.parse_filename(properties.core.physical_name)
+        validity_start = properties.core.validity_start
+        return os.path.join(
+            "sentinel-5p",
+            "AUX_NISE__",
+            validity_start.strftime("%Y"),
+            validity_start.strftime("%m")
+        )
+
+    def analyze(self, paths):
+        inpath = paths[0]
+        name_attrs = self.parse_filename(inpath)
+
+        properties = Struct()
+
+        core = properties.core = Struct()
+        core.product_name = os.path.splitext(os.path.basename(inpath))[0]
+        core.validity_start = datetime.strptime(name_attrs['validity_start'], "%Y%m%d")
+        core.validity_stop = core.validity_start + timedelta(days=1)
+
+        s5p = properties.s5p = Struct()
+        s5p.file_class = "OPER"
+        s5p.file_type = "AUX_NISE__"
+
+        return properties
+
+
 def product_types():
-    return PRODUCT_TYPES
+    return MUNINN_PRODUCT_TYPES
 
 
-def product_type_plugin(product_type):
-    if product_type in PRODUCT_TYPES:
-        return Sentinel5PProduct(product_type)
+def product_type_plugin(muninn_product_type):
+    product_type = muninn_product_type[4:14]
+    if product_type in L1_PRODUCT_TYPES + L2_PRODUCT_TYPES:
+        return Sentinel5PProduct(muninn_product_type)
+    if product_type == "AUX_NISE__":
+        return Sentinel5PAuxiliaryNISEProduct(muninn_product_type)
+    if product_type in AUX_PRODUCT_TYPES:
+        return Sentinel5PAuxiliaryProduct(muninn_product_type)
