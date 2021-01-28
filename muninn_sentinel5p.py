@@ -160,7 +160,7 @@ class Sentinel5PProduct(object):
             validity_start.strftime("%d")
         )
 
-    def analyze(self, paths):
+    def analyze(self, paths, filename_only=False):
         inpath = paths[0]
         name_attrs = self.parse_filename(inpath)
 
@@ -171,7 +171,8 @@ class Sentinel5PProduct(object):
         core.creation_date = datetime.strptime(name_attrs['creation_date'], "%Y%m%dT%H%M%S")
         core.validity_start = datetime.strptime(name_attrs['validity_start'], "%Y%m%dT%H%M%S")
         core.validity_stop = datetime.strptime(name_attrs['validity_stop'], "%Y%m%dT%H%M%S")
-        core.footprint = get_footprint(inpath)
+        if not filename_only:
+            core.footprint = get_footprint(inpath)
 
         s5p = properties.s5p = Struct()
         s5p.file_class = name_attrs['file_class']
@@ -207,7 +208,7 @@ class Sentinel5PAuxiliaryProduct(Sentinel5PProduct):
             validity_start.strftime("%m")
         )
 
-    def analyze(self, paths):
+    def analyze(self, paths, filename_only=False):
         inpath = paths[0]
         name_attrs = self.parse_filename(inpath)
 
@@ -247,7 +248,7 @@ class Sentinel5PAuxiliaryNISEProduct(Sentinel5PAuxiliaryProduct):
             validity_start.strftime("%m")
         )
 
-    def analyze(self, paths):
+    def analyze(self, paths, filename_only=False):
         inpath = paths[0]
         name_attrs = self.parse_filename(inpath)
 
