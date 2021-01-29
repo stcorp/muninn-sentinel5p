@@ -121,7 +121,8 @@ class Sentinel5PProduct(object):
 
     def __init__(self, product_type):
         self.use_enclosing_directory = False
-        self.use_hash = False
+        self.use_hash = False  # For compatibility with muninn versions before 5.1
+        self.hash_type = None
         self.product_type = product_type
         # see https://earth.esa.int/web/sentinel/user-guides/sentinel-5p-tropomi/naming-convention
         pattern = [
