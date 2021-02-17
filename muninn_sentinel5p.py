@@ -73,30 +73,10 @@ AUX_PRODUCT_TYPES = [
     'AUX_CTM_CO',
 ]
 
-FILE_CLASSES = [
-    'NRTI',  # near-real time processing
-    'OFFL',  # offline processing
-    'RPRO',  # reprocessing
-    'TEST',  # test
-]
-
 MUNINN_PRODUCT_TYPES = []
 
-for _type in L1_PRODUCT_TYPES:
-    for _fileclass in FILE_CLASSES:
-        MUNINN_PRODUCT_TYPES.append('S5P_%s_%s' % (_type, _fileclass))
-
-
-for _type in L2_PRODUCT_TYPES:
-    for _fileclass in FILE_CLASSES:
-        if _fileclass == 'NRTI' and _type == 'L2__CH4':
-            # There are no NRTI products for L2 CH4
-            continue
-        MUNINN_PRODUCT_TYPES.append("S5P_%s_%s" % (_type, _fileclass))
-
-
-for _type in AUX_PRODUCT_TYPES:
-    MUNINN_PRODUCT_TYPES.append("S5P_%s" % (_type))
+for _type in L1_PRODUCT_TYPES + L2_PRODUCT_TYPES + AUX_PRODUCT_TYPES:
+    MUNINN_PRODUCT_TYPES.append("S5P_" + _type)
 
 
 def get_footprint(product):
@@ -127,8 +107,8 @@ class Sentinel5PProduct(object):
         # see https://earth.esa.int/web/sentinel/user-guides/sentinel-5p-tropomi/naming-convention
         pattern = [
             r"S5P",
-            r"(?P<file_class>%s)" % product_type[-4:],  # e.g. "S5P_L2__NO2____NRTI" -> "NRTI"
-            r"(?P<file_type>%s)" % product_type[4:14],  # e.g. "S5P_L2__NO2____NRTI" -> "L2__NO2___"
+            r"(?P<file_class>.{4})",
+            r"(?P<file_type>%s)" % product_type[4:],  # e.g. "S5P_L2__NO2___" -> "L2__NO2___"
             r"(?P<validity_start>[\dT]{15})",
             r"(?P<validity_stop>[\dT]{15})",
             r"(?P<orbit>.{5})",
@@ -272,7 +252,7 @@ def product_types():
 
 
 def product_type_plugin(muninn_product_type):
-    product_type = muninn_product_type[4:14]
+    product_type = muninn_product_type[4:]
     if product_type in L1_PRODUCT_TYPES + L2_PRODUCT_TYPES:
         return Sentinel5PProduct(muninn_product_type)
     if product_type == "AUX_NISE__":

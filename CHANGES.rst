@@ -1,3 +1,7 @@
+* Remove file class from product_type names. This requires a data migration of
+  any existing database. This can be done using e.g.
+  UPDATE core SET product_type=substr(product_type,0,15) WHERE product_type LIKE 'S5P%';
+
 1.1 2020-12-21
 ~~~~~~~~~~~~~~
 
