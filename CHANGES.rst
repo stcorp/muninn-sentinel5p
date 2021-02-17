@@ -2,6 +2,8 @@
   any existing database. This can be done using e.g.
   UPDATE core SET product_type=substr(product_type,0,15) WHERE product_type LIKE 'S5P%';
 
+* Change default hash type to 'md5' for all products.
+
 1.1 2020-12-21
 ~~~~~~~~~~~~~~
 
