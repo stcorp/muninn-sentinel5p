@@ -180,11 +180,10 @@ class Sentinel5PAuxiliaryProduct(Sentinel5PProduct):
         self.filename_pattern = "_".join(pattern) + r"\.nc$"
 
     def archive_path(self, properties):
-        name_attrs = self.parse_filename(properties.core.physical_name)
         validity_start = properties.core.validity_start
         return os.path.join(
             "sentinel-5p",
-            name_attrs['file_type'],
+            self.product_type[4:],
             validity_start.strftime("%Y"),
             validity_start.strftime("%m")
         )
