@@ -205,7 +205,10 @@ class Sentinel5PAuxiliaryProduct(Sentinel5PProduct):
             r"(?P<validity_stop>[\dT]{15})",
             r"(?P<creation_date>[\dT]{15})"
         ]
-        self.filename_pattern = "_".join(pattern) + r"\.nc$"
+        if product_type[4:7] == "CFG":
+            self.filename_pattern = "_".join(pattern) + r"\.cfg$"
+        else:
+            self.filename_pattern = "_".join(pattern) + r"\.nc$"
 
     def archive_path(self, properties):
         validity_start = properties.core.validity_start
