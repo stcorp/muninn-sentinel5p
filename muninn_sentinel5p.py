@@ -225,8 +225,14 @@ class Sentinel5PAuxiliaryProduct(Sentinel5PProduct):
         core = properties.core = Struct()
         core.product_name = os.path.splitext(os.path.basename(inpath))[0]
         core.creation_date = datetime.strptime(name_attrs['creation_date'], "%Y%m%dT%H%M%S")
-        core.validity_start = datetime.strptime(name_attrs['validity_start'], "%Y%m%dT%H%M%S")
-        core.validity_stop = datetime.strptime(name_attrs['validity_stop'], "%Y%m%dT%H%M%S")
+        if name_attrs['validity_start'] == "00000000T000000":
+            core.validity_start = datetime.min
+        else:
+            core.validity_start = datetime.strptime(name_attrs['validity_start'], "%Y%m%dT%H%M%S")
+        if name_attrs['validity_stop'] == "99999999T999999":
+            core.validity_stop = datetime.max
+        else:
+            core.validity_stop = datetime.strptime(name_attrs['validity_stop'], "%Y%m%dT%H%M%S")
 
         s5p = properties.s5p = Struct()
         s5p.file_class = name_attrs['file_class']
