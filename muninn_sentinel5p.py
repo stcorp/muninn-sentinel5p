@@ -195,7 +195,7 @@ class Sentinel5PProduct(object):
 
 class Sentinel5PAuxiliaryProduct(Sentinel5PProduct):
 
-    def __init__(self, product_type):
+    def __init__(self, product_type, extension="nc"):
         super(Sentinel5PAuxiliaryProduct, self).__init__(product_type)
         pattern = [
             r"S5P",
@@ -205,10 +205,10 @@ class Sentinel5PAuxiliaryProduct(Sentinel5PProduct):
             r"(?P<validity_stop>[\dT]{15})",
             r"(?P<creation_date>[\dT]{15})"
         ]
-        if product_type[4:7] == "CFG":
-            self.filename_pattern = "_".join(pattern) + r"\.cfg$"
+        if extension:
+            self.filename_pattern = "_".join(pattern) + r"\." + extension + "$"
         else:
-            self.filename_pattern = "_".join(pattern) + r"\.nc$"
+            self.filename_pattern = "_".join(pattern) + "$"
 
     def archive_path(self, properties):
         validity_start = properties.core.validity_start
@@ -255,16 +255,6 @@ class Sentinel5PAuxiliaryNISEProduct(Sentinel5PAuxiliaryProduct):
         ]
         self.filename_pattern = "_".join(pattern) + r"\.HDFEOS$"
 
-    def archive_path(self, properties):
-        name_attrs = self.parse_filename(properties.core.physical_name)
-        validity_start = properties.core.validity_start
-        return os.path.join(
-            "sentinel-5p",
-            "AUX_NISE__",
-            validity_start.strftime("%Y"),
-            validity_start.strftime("%m")
-        )
-
     def analyze(self, paths, filename_only=False):
         inpath = paths[0]
         name_attrs = self.parse_filename(inpath)
@@ -294,4 +284,6 @@ def product_type_plugin(muninn_product_type):
     if product_type == "AUX_NISE__":
         return Sentinel5PAuxiliaryNISEProduct(muninn_product_type)
     if product_type in AUX_PRODUCT_TYPES:
+        if product_type.startswith("CFG"):
+            return Sentinel5PAuxiliaryProduct(muninn_product_type, "cfg")
         return Sentinel5PAuxiliaryProduct(muninn_product_type)
