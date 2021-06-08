@@ -1,3 +1,5 @@
+* Set creation_date equal to validity_start for AUX_NISE__.
+
 2.0 2021-02-17
 ~~~~~~~~~~~~~~
 
