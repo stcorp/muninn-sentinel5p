@@ -1,8 +1,5 @@
 * Set creation_date equal to validity_start for AUX_NISE__.
 
-2.0 2021-02-17
-~~~~~~~~~~~~~~
-
 * Remove file class from product_type names. This requires a data migration of
   any existing database. This can be done using e.g.
   UPDATE core SET product_type=substr(product_type,0,15) WHERE product_type LIKE 'S5P%';
