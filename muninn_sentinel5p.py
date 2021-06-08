@@ -265,6 +265,7 @@ class Sentinel5PAuxiliaryNISEProduct(Sentinel5PAuxiliaryProduct):
         core.product_name = os.path.splitext(os.path.basename(inpath))[0]
         core.validity_start = datetime.strptime(name_attrs['validity_start'], "%Y%m%d")
         core.validity_stop = core.validity_start + timedelta(days=1)
+        core.creation_date = core.validity_start
 
         s5p = properties.s5p = Struct()
         s5p.file_class = "OPER"
