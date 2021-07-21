@@ -212,6 +212,8 @@ class Sentinel5PAuxiliaryProduct(Sentinel5PProduct):
 
     def archive_path(self, properties):
         validity_start = properties.core.validity_start
+        if properties.core.validity_start == datetime.min:
+            return os.path.join("sentinel-5p", self.product_type[4:])
         return os.path.join(
             "sentinel-5p",
             self.product_type[4:],
