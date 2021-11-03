@@ -1,4 +1,9 @@
+2.0 2021-11-03
+~~~~~~~~~~~~~~
+
 * Set creation_date equal to validity_start for AUX_NISE__.
+
+* Add support for additional auxiliary product types.
 
 * Remove file class from product_type names. This requires a data migration of
   any existing database. This can be done using e.g.
