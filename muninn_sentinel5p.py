@@ -133,10 +133,6 @@ def get_footprint(product):
 class Sentinel5PProduct(object):
 
     def __init__(self, product_type):
-        self.use_enclosing_directory = False
-        self.use_hash = False  # For compatibility with muninn versions before 5.1
-        self.hash_type = "md5"
-        self.namespaces = ["s5p"]
         self.product_type = product_type
         # see https://earth.esa.int/web/sentinel/user-guides/sentinel-5p-tropomi/naming-convention
         pattern = [
@@ -151,6 +147,23 @@ class Sentinel5PProduct(object):
             r"(?P<creation_date>[\dT]{15})"
         ]
         self.filename_pattern = "_".join(pattern) + r"\.nc$"
+
+    @property
+    def namespaces(self):
+        return ["s5p"]
+
+    @property
+    def use_enclosing_directory(self):
+        return False
+
+    @property
+    def use_hash(self):
+        # For compatibility with muninn versions before 5.1
+        return True
+
+    @property
+    def hash_type(self):
+        return "md5"
 
     def parse_filename(self, filename):
         match = re.match(self.filename_pattern, os.path.basename(filename))
