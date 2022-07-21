@@ -2,8 +2,8 @@ from setuptools import setup
 
 setup(
     name="muninn-sentinel5p",
-    version="2.0",
-    description="Muninn extension for official L1/L2 Copernicus Sentinel-5P products",
+    version="2.1",
+    description="Muninn extension for official L1/L2/AUX Copernicus Sentinel-5P products",
     url="https://github.com/stcorp/muninn-sentinel5p",
     author="S[&]T",
     license="BSD",

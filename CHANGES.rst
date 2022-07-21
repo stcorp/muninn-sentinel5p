@@ -1,3 +1,10 @@
+2.1 2022-07-21
+~~~~~~~~~~~~~~
+
+* Add 'namespaces' property to product type extension.
+
+* Use property methods for muninn product type api properties.
+
 2.0 2021-11-03
 ~~~~~~~~~~~~~~
 
@@ -24,3 +31,9 @@
     ALTER TABLE s5p ALTER COLUMN orbit DROP NOT NULL;
     ALTER TABLE s5p ALTER COLUMN collection DROP NOT NULL;
     ALTER TABLE s5p ALTER COLUMN processor_version DROP NOT NULL;
+
+
+1.0 2020-03-11
+~~~~~~~~~~~~~~
+
+* First release.
