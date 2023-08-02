@@ -90,6 +90,7 @@ AUX_PRODUCT_TYPES = [
     'LUT_ALH_NN',
     'LUT_CH4AER',
     'LUT_CH4CIR',
+    'LUT_CH4RFC',
     'LUT_FRESCO',
     'LUT_NO2AMF',
     'LUT_NO2CLD',
@@ -308,4 +309,6 @@ def product_type_plugin(muninn_product_type):
     if product_type in AUX_PRODUCT_TYPES:
         if product_type.startswith("CFG"):
             return Sentinel5PAuxiliaryProduct(muninn_product_type, "cfg")
+        if product_type == "LUT_CH4RFC":
+            return Sentinel5PAuxiliaryProduct(muninn_product_type, "zip")
         return Sentinel5PAuxiliaryProduct(muninn_product_type)
