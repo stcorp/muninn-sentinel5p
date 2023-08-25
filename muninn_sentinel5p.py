@@ -139,7 +139,7 @@ class Sentinel5PProduct(object):
         pattern = [
             r"S5P",
             r"(?P<file_class>.{4})",
-            r"(?P<file_type>%s)" % product_type[4:],  # e.g. "S5P_L2__NO2___" -> "L2__NO2___"
+            r"(?P<file_type>%s)" % product_type,
             r"(?P<validity_start>[\dT]{15})",
             r"(?P<validity_stop>[\dT]{15})",
             r"(?P<orbit>.{5})",
@@ -220,7 +220,7 @@ class Sentinel5PAuxiliaryProduct(Sentinel5PProduct):
         pattern = [
             r"S5P",
             r"(?P<file_class>.{4})",
-            r"(?P<file_type>%s)" % product_type[4:],
+            r"(?P<file_type>%s)" % product_type,
             r"(?P<validity_start>[\dT]{15})",
             r"(?P<validity_stop>[\dT]{15})",
             r"(?P<creation_date>[\dT]{15})"
@@ -233,10 +233,10 @@ class Sentinel5PAuxiliaryProduct(Sentinel5PProduct):
     def archive_path(self, properties):
         validity_start = properties.core.validity_start
         if properties.core.validity_start == datetime.min:
-            return os.path.join("sentinel-5p", self.product_type[4:])
+            return os.path.join("sentinel-5p", self.product_type)
         return os.path.join(
             "sentinel-5p",
-            self.product_type[4:],
+            self.product_type,
             validity_start.strftime("%Y"),
             validity_start.strftime("%m")
         )
@@ -303,12 +303,12 @@ def product_types():
 def product_type_plugin(muninn_product_type):
     product_type = muninn_product_type[4:]
     if product_type in L1_PRODUCT_TYPES + L2_PRODUCT_TYPES:
-        return Sentinel5PProduct(muninn_product_type)
+        return Sentinel5PProduct(product_type)
     if product_type == "AUX_NISE__":
-        return Sentinel5PAuxiliaryNISEProduct(muninn_product_type)
+        return Sentinel5PAuxiliaryNISEProduct(product_type)
     if product_type in AUX_PRODUCT_TYPES:
         if product_type.startswith("CFG"):
-            return Sentinel5PAuxiliaryProduct(muninn_product_type, "cfg")
+            return Sentinel5PAuxiliaryProduct(product_type, "cfg")
         if product_type == "LUT_CH4RFC":
-            return Sentinel5PAuxiliaryProduct(muninn_product_type, "zip")
-        return Sentinel5PAuxiliaryProduct(muninn_product_type)
+            return Sentinel5PAuxiliaryProduct(product_type, "zip")
+        return Sentinel5PAuxiliaryProduct(product_type)
