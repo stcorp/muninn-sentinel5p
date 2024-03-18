@@ -107,10 +107,7 @@ AUX_PRODUCT_TYPES = [
     'REF_XS__CO',
 ]
 
-MUNINN_PRODUCT_TYPES = []
-
-for _type in L1_PRODUCT_TYPES + L2_PRODUCT_TYPES + AUX_PRODUCT_TYPES:
-    MUNINN_PRODUCT_TYPES.append("S5P_" + _type)
+MUNINN_PRODUCT_TYPES = L1_PRODUCT_TYPES + L2_PRODUCT_TYPES + AUX_PRODUCT_TYPES
 
 
 def get_footprint(product):
@@ -300,8 +297,7 @@ def product_types():
     return MUNINN_PRODUCT_TYPES
 
 
-def product_type_plugin(muninn_product_type):
-    product_type = muninn_product_type[4:]
+def product_type_plugin(product_type):
     if product_type in L1_PRODUCT_TYPES + L2_PRODUCT_TYPES:
         return Sentinel5PProduct(product_type)
     if product_type == "AUX_NISE__":

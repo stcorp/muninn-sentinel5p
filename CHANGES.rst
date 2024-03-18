@@ -1,3 +1,8 @@
+3.0 2024-03-18
+~~~~~~~~~~~~~~
+
+* Remove S5P_ prefix from product type names.
+
 2.2 2023-09-20
 ~~~~~~~~~~~~~~
 
