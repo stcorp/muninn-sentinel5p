@@ -101,6 +101,7 @@ AUX_PRODUCT_TYPES = [
     'REF_DEM___',
     'REF_LER___',
     'REF_SOLAR_',
+    'REF_XS_AAI',
     'REF_XS_CH4',
     'REF_XS_NO2',
     'REF_XS_O3P',
