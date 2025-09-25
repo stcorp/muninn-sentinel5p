@@ -27,6 +27,27 @@ def namespace(name):
 
 # Product types
 
+L0_PRODUCT_TYPES = [
+    'L0__ODB_1_',
+    'L0__ODB_2_',
+    'L0__ODB_3_',
+    'L0__ODB_4_',
+    'L0__ODB_5_',
+    'L0__ODB_6_',
+    'L0__ODB_7_',
+    'L0__ODB_8_',
+    'L0__ENG_A_',
+    'L0__SAT_A_',
+]
+
+ICM_PRODUCT_TYPES = [
+    'AUX_L1_CKD',
+    'ICM_CA_SIR',
+    'ICM_CA_UVN',
+    'ICM_CKDSIR',
+    'ICM_CKDUVN',
+]
+
 L1_PRODUCT_TYPES = [
     'L1B_RA_BD1',
     'L1B_RA_BD2',
@@ -108,7 +129,7 @@ AUX_PRODUCT_TYPES = [
     'REF_XS__CO',
 ]
 
-MUNINN_PRODUCT_TYPES = L1_PRODUCT_TYPES + L2_PRODUCT_TYPES + AUX_PRODUCT_TYPES
+MUNINN_PRODUCT_TYPES = L0_PRODUCT_TYPES + ICM_PRODUCT_TYPES + L1_PRODUCT_TYPES + L2_PRODUCT_TYPES + AUX_PRODUCT_TYPES
 
 
 def get_footprint(product):
@@ -211,6 +232,67 @@ class Sentinel5PProduct(object):
         return properties
 
 
+class Sentinel5PL0Product(Sentinel5PProduct):
+    def __init__(self, product_type):
+        super(Sentinel5PL0Product, self).__init__(product_type)
+        pattern = [
+            r"S5P",
+            r"(?P<file_class>.{4})",
+            r"(?P<file_type>%s)" % product_type,
+            r"(?P<validity_start>[\dT]{15})",
+            r"(?P<validity_stop>[\dT]{15})",
+            r"(?P<orbit>.{5})",
+            r"(?P<chunk>.{2})",
+        ]
+        self.filename_pattern = "_".join(pattern) + r"\.RAW$"
+
+    def analyze(self, paths, filename_only=False):
+        inpath = paths[0]
+        name_attrs = self.parse_filename(inpath)
+
+        properties = Struct()
+
+        core = properties.core = Struct()
+        core.product_name = os.path.splitext(os.path.basename(inpath))[0]
+        core.validity_start = datetime.strptime(name_attrs['validity_start'], "%Y%m%dT%H%M%S")
+        core.validity_stop = datetime.strptime(name_attrs['validity_stop'], "%Y%m%dT%H%M%S")
+
+        s5p = properties.s5p = Struct()
+        s5p.file_class = name_attrs['file_class']
+        s5p.file_type = name_attrs['file_type']
+        s5p.orbit = int(name_attrs['orbit'])
+
+        return properties
+
+
+class Sentinel5PICMProduct(Sentinel5PProduct):
+    def __init__(self, product_type):
+        self.product_type = product_type
+        pattern = [
+            r"S5P",
+            r"(?P<file_class>.{4})",
+            r"(?P<file_type>%s)" % product_type,
+            r"(?P<validity_start>[\dT]{15})",
+            r"(?P<validity_stop>[\dT]{15})",
+            r"(?P<orbit>.{5})",
+            r"(?P<collection>.{2})",
+            r"(?P<processor_version>.{6})",
+            r"(?P<creation_date>[\dT]{15})"
+        ]
+        self.filename_pattern = "_".join(pattern) + r"\.h5$"
+
+    def analyze(self, paths, filename_only=True):
+        return super(Sentinel5PICMProduct, self).analyze(paths, filename_only=True)
+
+    @property
+    def use_enclosing_directory(self):
+        return False
+
+    @property
+    def hash_type(self):
+        return "md5"
+
+
 class Sentinel5PAuxiliaryProduct(Sentinel5PProduct):
 
     def __init__(self, product_type, extension="nc"):
@@ -299,6 +381,10 @@ def product_types():
 
 
 def product_type_plugin(product_type):
+    if product_type in L0_PRODUCT_TYPES:
+        return Sentinel5PL0Product(product_type)
+    if product_type in ICM_PRODUCT_TYPES:
+        return Sentinel5PICMProduct(product_type)
     if product_type in L1_PRODUCT_TYPES + L2_PRODUCT_TYPES:
         return Sentinel5PProduct(product_type)
     if product_type == "AUX_NISE__":
