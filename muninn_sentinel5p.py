@@ -242,7 +242,7 @@ class Sentinel5PL0Product(Sentinel5PProduct):
             r"(?P<validity_start>[\dT]{15})",
             r"(?P<validity_stop>[\dT]{15})",
             r"(?P<orbit>.{5})",
-            r"(?P<chunk>.{2})",
+            r"(?P<chunk>.{2,3})",
         ]
         self.filename_pattern = "_".join(pattern) + r"\.RAW$"
 
