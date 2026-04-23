@@ -67,6 +67,7 @@ L1_PRODUCT_TYPES = [
 L2_PRODUCT_TYPES = [
     'L2__AER_AI',
     'L2__AER_LH',
+    'L2__AUXDEM',
     'L2__CH4___',
     'L2__CLOUD_',
     'L2__CO____',
