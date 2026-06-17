@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from datetime import datetime, timedelta
@@ -84,6 +85,25 @@ L2_PRODUCT_TYPES = [
     'L2__SO2___',
 ]
 
+PAL_L2_PRODUCT_TYPES = [
+    "L2__AER_OT",
+    "L2__BRO___",
+    "L2__CHOCHO",
+    "L2__CH4__B",
+    "L2__HDO__S",
+    "L2__HONO__",
+    "L2__KD____",
+    "L2__OCLO__",
+    "L2__SCNLER",
+    "L2__SIF___",
+    "L2__SO2CBR",
+    "L2__TCWV__",
+]
+
+PAL_L2_DAILY_PRODUCT_TYPES = [
+    "L2B_SIF___",
+]
+
 AUX_PRODUCT_TYPES = [
     'AUX_CTMANA',
     'AUX_CTMCH4',
@@ -130,7 +150,8 @@ AUX_PRODUCT_TYPES = [
     'REF_XS__CO',
 ]
 
-MUNINN_PRODUCT_TYPES = L0_PRODUCT_TYPES + ICM_PRODUCT_TYPES + L1_PRODUCT_TYPES + L2_PRODUCT_TYPES + AUX_PRODUCT_TYPES
+MUNINN_PRODUCT_TYPES = L0_PRODUCT_TYPES + ICM_PRODUCT_TYPES + L1_PRODUCT_TYPES + L2_PRODUCT_TYPES + \
+    PAL_L2_PRODUCT_TYPES + PAL_L2_DAILY_PRODUCT_TYPES + AUX_PRODUCT_TYPES
 
 
 def get_footprint(product):
@@ -149,6 +170,20 @@ def get_footprint(product):
     if len(coord) % 2 != 0:
         return None
     return Polygon([LinearRing([Point(float(lon), float(lat)) for lat, lon in zip(coord[0::2], coord[1::2])])])
+
+
+def get_footprint_pal(product):
+    try:
+        import coda
+    except ImportError:
+        return None
+    with coda.open(product) as pf:
+        try:
+            footprint = json.loads(coda.fetch(pf, "@footprint"))
+        except coda.CodacError:
+            return None
+    assert footprint["type"] == "Polygon"
+    return Polygon([LinearRing([Point(float(c[0]), float(c[1])) for c in footprint["coordinates"][0]])])
 
 
 class Sentinel5PProduct(object):
@@ -377,6 +412,33 @@ class Sentinel5PAuxiliaryNISEProduct(Sentinel5PAuxiliaryProduct):
         return properties
 
 
+class Sentinel5PPALProduct(Sentinel5PProduct):
+
+    def analyze(self, paths, filename_only=False):
+        properties = super(Sentinel5PPALProduct, self).analyze(paths, filename_only=True)
+        if not filename_only:
+            properties.core.footprint = get_footprint_pal(paths[0])
+        return properties
+
+
+class Sentinel5PPALDailyProduct(Sentinel5PAuxiliaryProduct):
+
+    def analyze(self, paths, filename_only=False):
+        properties = super(Sentinel5PPALDailyProduct, self).analyze(paths, filename_only=True)
+        # Retrieve metadata from global attributes
+        if not filename_only:
+            try:
+                import coda
+            except ImportError:
+                pass
+            else:
+                with coda.Product(paths[0]) as product:
+                    attrs = product.get_attributes()
+                    if hasattr(attrs, "processor_version"):
+                        properties.s5p.processor_version = int(attrs.processor_version.replace(".", ""))
+        return properties
+
+
 def product_types():
     return MUNINN_PRODUCT_TYPES
 
@@ -388,6 +450,10 @@ def product_type_plugin(product_type):
         return Sentinel5PICMProduct(product_type)
     if product_type in L1_PRODUCT_TYPES + L2_PRODUCT_TYPES:
         return Sentinel5PProduct(product_type)
+    if product_type in PAL_L2_PRODUCT_TYPES:
+        return Sentinel5PPALProduct(product_type)
+    if product_type in PAL_L2_DAILY_PRODUCT_TYPES:
+        return Sentinel5PPALDailyProduct(product_type)
     if product_type == "AUX_NISE__":
         return Sentinel5PAuxiliaryNISEProduct(product_type)
     if product_type in AUX_PRODUCT_TYPES:
