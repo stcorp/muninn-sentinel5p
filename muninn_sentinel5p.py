@@ -90,6 +90,7 @@ PAL_L2_PRODUCT_TYPES = [
     "L2__BRO___",
     "L2__CHOCHO",
     "L2__CH4__B",
+    "L2__HDO__B",
     "L2__HDO__S",
     "L2__HONO__",
     "L2__KD____",
