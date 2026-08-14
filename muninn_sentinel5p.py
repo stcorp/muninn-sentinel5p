@@ -137,6 +137,7 @@ AUX_PRODUCT_TYPES = [
     'LUT_FRESCO',
     'LUT_NO2AMF',
     'LUT_NO2CLD',
+    'LUT_NO2STE',
     'LUT_O22CLD',
     'LUT_O3PCLD',
     'LUT_O3PPOL',
