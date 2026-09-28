@@ -98,6 +98,7 @@ PAL_L2_PRODUCT_TYPES = [
     "L2__SCNLER",
     "L2__SIF___",
     "L2__SO2CBR",
+    "L2__SO2LH_",
     "L2__TCWV__",
 ]
 
